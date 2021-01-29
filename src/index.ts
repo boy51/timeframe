@@ -101,7 +101,7 @@ export function checkTimeframesOverlap(arg1: Timeframe, arg2: Timeframe): boolea
 /**
  * Takes array of timeframes and determines unique (distinct) timeframes that are included.
  * @param {Timeframe<string | number | Date>[]} of Array to find unqiue timeframes of.
- * @return {Timeframe[]} Array of unique timeframes.
+ * @return {Timeframe[]} Array of unique timeframes which is sorted by start from earliest to latest.
  */
 export function getUniqueTimeframes(of: Timeframe<string | number | Date>[]): Timeframe[] {
   const initial: TSerialDate[] = of.map<TSerialDate>((r) => [
@@ -110,9 +110,12 @@ export function getUniqueTimeframes(of: Timeframe<string | number | Date>[]): Ti
   ])
 
   if (initial.length < 1) return []
-  const res = [...new Set(initial.map((tf) => JSON.stringify(tf)))].map((v) => JSON.parse(v))
+  const res = [...new Set(initial.map((tf) => JSON.stringify(tf)))].map<TSerialDate>((v) =>
+    JSON.parse(v),
+  )
+  const sorted = res.sort((a, b) => a[0] - b[0])
 
-  return res.map((v) => ({
+  return sorted.map((v) => ({
     start: new Date(v[0]).toISOString(),
     end: v[1] ? new Date(v[1]).toISOString() : null,
   }))
