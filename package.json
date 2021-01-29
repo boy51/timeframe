@@ -1,9 +1,9 @@
 {
-  "name": "timeframe",
+  "name": "timeframes",
   "files": [
     "lib/**/*"
   ],
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Utilities for dealing with timeframes",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",

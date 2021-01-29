@@ -1,8 +1,11 @@
 import moment from 'moment'
 
-type Timeframe = {
-  start: string
-  end: string | null
+/**
+ * Basic timeframe where end can be null.
+ */
+type Timeframe<T extends string | number | Date = string> = {
+  start: T
+  end: T | null
 }
 
 /**
@@ -33,6 +36,9 @@ export function checkNowIsInTimeframe(
   return s <= now && (!e || e > now)
 }
 
+/**
+ * Serialized timeframe tuple.
+ */
 type TSerialDate<T = number> = [start: T, end: T | null]
 /**
  * Takes two timeframes and determines whether they are the same timeframe.
@@ -90,4 +96,24 @@ export function checkTimeframesOverlap(arg1: Timeframe, arg2: Timeframe): boolea
   }
 
   return false
+}
+
+/**
+ * Takes array of timeframes and determines unique (distinct) timeframes that are included.
+ * @param {Timeframe<string | number | Date>[]} of Array to find unqiue timeframes of.
+ * @return {Timeframe[]} Array of unique timeframes.
+ */
+export function getUniqueTimeframes(of: Timeframe<string | number | Date>[]): Timeframe[] {
+  const initial: TSerialDate[] = of.map<TSerialDate>((r) => [
+    new Date(r.start).getTime(),
+    !r.end ? null : new Date(r.end).getTime(),
+  ])
+
+  if (initial.length < 1) return []
+  const res = [...new Set(initial.map((tf) => JSON.stringify(tf)))].map((v) => JSON.parse(v))
+
+  return res.map((v) => ({
+    start: new Date(v[0]).toISOString(),
+    end: v[1] ? new Date(v[1]).toISOString() : null,
+  }))
 }
