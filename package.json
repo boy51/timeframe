@@ -48,7 +48,9 @@
   },
   "homepage": "https://github.com/boy51/timeframe#readme",
   "devDependencies": {
+    "@types/faker": "^5.1.5",
     "@types/jest": "^26.0.20",
+    "faker": "^5.2.0",
     "jest": "^26.6.3",
     "prettier": "^2.2.1",
     "rimraf": "^3.0.2",
