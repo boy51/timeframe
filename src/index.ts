@@ -2,11 +2,15 @@ import moment from 'moment'
 
 /**
  * Basic timeframe where end can be null.
+ * @more Dates can be expressed as valid datestrings, numbers or JS dates.
+ * If not specified otherwise with type parameter, defaults to using strings.
  */
 type Timeframe<T extends string | number | Date = string> = {
   start: T
   end: T | null
 }
+/** Timeframe where values are intersection between string, number or date */
+type SerializableTimeframe = Timeframe<string | number | Date>
 
 /**
  * Takes a timeframe and determines whether the user's time falls within it.
@@ -14,8 +18,8 @@ type Timeframe<T extends string | number | Date = string> = {
  * @param {Date|string|null} end End point of timeframe. Must be a valid date, date string or ISO date number. If null, it means the timeframe has no end.
  */
 export function checkNowIsInTimeframe(
-  start: Date | string | number,
-  end: Date | string | number | null,
+  start: SerializableTimeframe['start'],
+  end: SerializableTimeframe['end'],
 ): boolean {
   const s =
     typeof start === 'string' || typeof start === 'number'
@@ -45,7 +49,10 @@ type TSerialDate<T = number> = [start: T, end: T | null]
  * @param arg1 First timeframe.
  * @param arg2 Second timeframe.
  */
-export function checkIsSameTimeframe(arg1: Timeframe, arg2: Timeframe): boolean {
+export function checkIsSameTimeframe(
+  arg1: SerializableTimeframe,
+  arg2: SerializableTimeframe,
+): boolean {
   const one: TSerialDate = [
     new Date(arg1.start).getTime(),
     !arg1.end ? null : new Date(arg1.end).getTime(),
@@ -103,7 +110,7 @@ export function checkTimeframesOverlap(arg1: Timeframe, arg2: Timeframe): boolea
  * @param {Timeframe<string | number | Date>[]} of Array to find unqiue timeframes of.
  * @return {Timeframe[]} Array of unique timeframes which is sorted by start from earliest to latest.
  */
-export function getUniqueTimeframes(of: Timeframe<string | number | Date>[]): Timeframe[] {
+export function getUniqueTimeframes(of: SerializableTimeframe[]): Timeframe[] {
   const initial: TSerialDate[] = of.map<TSerialDate>((r) => [
     new Date(r.start).getTime(),
     !r.end ? null : new Date(r.end).getTime(),
