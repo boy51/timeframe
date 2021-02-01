@@ -1,6 +1,6 @@
 import moment from 'moment'
 
-type Timeframe = {
+export type Timeframe = {
   start: string
   end: string | null
 }
@@ -22,8 +22,8 @@ export function checkNowIsInTimeframe(
     typeof end === 'string' || typeof end === 'number'
       ? new Date(end).getTime()
       : end
-      ? end.getTime()
-      : null
+        ? end.getTime()
+        : null
 
   if (isNaN(s)) throw new Error('Invalid date: ' + start)
   if (e !== null && isNaN(e)) throw new Error('Invalid date: ' + end)
@@ -61,15 +61,16 @@ export function checkIsSameTimeframe(arg1: Timeframe, arg2: Timeframe): boolean 
 export function checkTimeframesOverlap(arg1: Timeframe, arg2: Timeframe): boolean {
   let tf
   switch (true) {
+    //beide kein Ende
     case !arg1.end && !arg2.end:
       return true
-
+    //1 kein Ende, 2 hat Ende
     case !arg1.end && arg2.end && true:
       tf = [moment(arg2.start), moment(arg2.end)]
       if (tf[0].isSameOrAfter(arg1.start) || tf[1].isAfter(arg1.start)) return true
       break
-
-    case !arg2.end && arg2.start && true:
+    //1 Ende, 2 kein Ende
+    case !arg2.end && arg1.end && true:
       tf = [moment(arg1.start), moment(arg1.end)]
       if (tf[0].isSameOrAfter(arg2.start) || tf[1].isAfter(arg2.start)) return true
       break
