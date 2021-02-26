@@ -5,7 +5,9 @@ import {
   checkTimeframesOverlap,
   getUniqueTimeframes,
   Timeframe,
+  getOverlappingTimeframe,
 } from '..'
+import { DateTime } from 'luxon'
 
 describe('checkNowIsInTimeframe', () => {
   it('returns true if now is in timeframe', () => {
@@ -151,5 +153,57 @@ describe('getUniqueTimeframes', () => {
     expect(JSON.stringify(getUniqueTimeframes(arr))).toEqual(
       JSON.stringify([{ ...tfPast }, { ...tfFut }]),
     )
+  })
+})
+
+describe('getOverlappingTimeframe', () => {
+  it('returns null if timeframes dont overlap', () => {
+    const t1: Timeframe = {
+      start: faker.date.past(2).toISOString(),
+      end: faker.date.past(1).toISOString(),
+    }
+    const t2 = {
+      start: faker.date.future(1).toISOString(),
+      end: faker.date.future(2).toISOString(),
+    }
+
+    expect(getOverlappingTimeframe(t1, t2)).toBe(null)
+  })
+
+  describe('calls as expected', () => {
+    const tf1 = { start: '2021-01-01T00:01:00.000Z', end: '2021-01-05T23:59:00.000Z' }
+    const tf2 = { start: '2021-01-03T00:01:00.000Z', end: '2021-01-10T23:59:00.000Z' }
+    const expected12 = { start: '2021-01-03T00:01:00.000Z', end: '2021-01-05T23:59:00.000Z' }
+
+    const tf3 = {
+      // same as tf1 but different timezone
+      start: DateTime.fromISO(tf1.start).setZone('Europe/Istanbul').toISO(),
+      end: DateTime.fromISO(tf1.end).setZone('Europe/Istanbul').toISO(),
+    }
+    const tf4 = tf2
+    const expected34 = expected12
+
+    const tf5 = { start: '2021-01-01T00:01:00.000Z', end: null }
+    const tf6 = { start: '2021-01-03T00:01:00.000Z', end: '2021-01-10T23:59:00.000Z' }
+    const expected56 = { start: '2021-01-03T00:01:00.000Z', end: '2021-01-10T23:59:00.000Z' }
+
+    const tf7 = { start: '2021-01-01T00:01:00.000Z', end: '2021-01-05T23:59:00.000Z' }
+    const tf8 = { start: '2021-01-03T00:01:00.000Z', end: null }
+    const expected78 = { start: '2021-01-03T00:01:00.000Z', end: '2021-01-05T23:59:00.000Z' }
+
+    const tf9 = { start: '2021-01-01T00:01:00.000Z', end: null }
+    const tf10 = { start: '2021-01-03T00:01:00.000Z', end: null }
+    const expected910 = { start: '2021-01-03T00:01:00.000Z', end: null }
+
+    test.each`
+      a      | b       | expected
+      ${tf1} | ${tf2}  | ${expected12}
+      ${tf3} | ${tf4}  | ${expected34}
+      ${tf5} | ${tf6}  | ${expected56}
+      ${tf7} | ${tf8}  | ${expected78}
+      ${tf9} | ${tf10} | ${expected910}
+    `('$a >> $b => $expected', ({ a, b, expected }) => {
+      expect(getOverlappingTimeframe(a, b)).toEqual(expected)
+    })
   })
 })
