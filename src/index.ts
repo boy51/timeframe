@@ -5,7 +5,7 @@ import moment from 'moment'
  * @more Dates can be expressed as valid datestrings, numbers or JS dates.
  * If not specified otherwise with type parameter, defaults to using strings.
  */
-type Timeframe<T extends string | number | Date = string> = {
+export type Timeframe<T extends string | number | Date = string> = {
   start: T
   end: T | null
 }
@@ -104,6 +104,12 @@ export function checkTimeframesOverlap(arg1: Timeframe, arg2: Timeframe): boolea
 
   return false
 }
+
+/**
+ * Takes two timeframes and determines the timeframe where they overlap.
+ * @return {Timeframe | null} Overlapping timeframe, or null if the timeframes don't overlap.
+ */
+export function getOverlappingTimeframe(arg1: Timeframe, arg2: Timeframe): Timeframe | null {}
 
 /**
  * Takes array of timeframes and determines unique (distinct) timeframes that are included.
