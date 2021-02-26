@@ -1,11 +1,12 @@
 import moment from 'moment'
+import { Interval, DateTime } from 'luxon'
 
 /**
  * Basic timeframe where end can be null.
  * @more Dates can be expressed as valid datestrings, numbers or JS dates.
  * If not specified otherwise with type parameter, defaults to using strings.
  */
-type Timeframe<T extends string | number | Date = string> = {
+export type Timeframe<T extends string | number | Date = string> = {
   start: T
   end: T | null
 }
@@ -103,6 +104,65 @@ export function checkTimeframesOverlap(arg1: Timeframe, arg2: Timeframe): boolea
   }
 
   return false
+}
+
+/**
+ * Takes two timeframes and determines the timeframe where they overlap.
+ * @return {Timeframe | null} Overlapping timeframe, or null if the timeframes don't overlap.
+ */
+export function getOverlappingTimeframe(arg1: Timeframe, arg2: Timeframe): Timeframe | null {
+  // Timeframe don't overlap
+  if (!checkTimeframesOverlap(arg1, arg2)) return null
+
+  // Check if one of the time frames is open ended
+  if (!arg1.end || !arg2.end) {
+    // At least one timeframe is open ended
+    const start1 = toDateTime(arg1.start).toUTC()
+    const start2 = toDateTime(arg2.start).toUTC()
+    let end: string | null
+
+    // Check which timeframe ends first
+    if (arg1.end !== null) {
+      end = toDateTime(arg1.end).toUTC().toISO()
+    } else if (arg2.end !== null) {
+      end = toDateTime(arg2.end).toUTC().toISO()
+    } else {
+      end = null
+    }
+    if (start1 > start2) return { start: start1.toISO(), end }
+    else return { start: start2.toISO(), end }
+  } else {
+    // Not Open Ended
+    const interval1 = Interval.fromDateTimes(
+      toDateTime(arg1.start).toUTC(),
+      toDateTime(arg1.end).toUTC(),
+    )
+    const interval2 = Interval.fromDateTimes(
+      toDateTime(arg2.start).toUTC(),
+      toDateTime(arg2.end).toUTC(),
+    )
+    const overlapInterval = interval1.intersection(interval2) as Interval
+
+    return {
+      start: overlapInterval.start.toISO(),
+      end: overlapInterval.end.toISO(),
+    }
+  }
+}
+/**
+ * Takes string, number or JsDate and converts to luxon DateTime in UTC
+ * @param {string | number | Date} date
+ * @return {DateTime}
+ */
+function toDateTime(date: string | number | Date) {
+  switch (typeof date) {
+    case 'string':
+      return DateTime.fromISO(date)
+    case 'number':
+      return DateTime.fromMillis(date)
+    default:
+      return DateTime.fromJSDate(date)
+  }
 }
 
 /**
