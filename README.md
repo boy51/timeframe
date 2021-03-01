@@ -1,11 +1,8 @@
-# timeframe.js
+# timeframe.js (1.1.2)
 
-Simple functions for dealing with timeframes
+Simple, well-tested functions for dealing with timeframes
 
 # Todo
 
-- Get rid of moment for dayjs or similar
-- heavily test
-- improve composition
-   - serializeDate
-- decide on fp or oop paradigm
+- Get rid of moment for luxon
+- improve composition to allow all serializable types
