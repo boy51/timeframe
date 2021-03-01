@@ -206,4 +206,66 @@ describe('getOverlappingTimeframe', () => {
       expect(getOverlappingTimeframe(a, b)).toEqual(expected)
     })
   })
+
+  describe('asDate option, accept and return dates', () => {
+    const tf1 = {
+      start: new Date('2021-01-01T00:01:00.000Z'),
+      end: new Date('2021-01-05T23:59:00.000Z'),
+    }
+    const tf2 = {
+      start: new Date('2021-01-03T00:01:00.000Z'),
+      end: new Date('2021-01-10T23:59:00.000Z'),
+    }
+    const expected12 = {
+      start: new Date('2021-01-03T00:01:00.000Z'),
+      end: new Date('2021-01-05T23:59:00.000Z'),
+    }
+
+    const tf3 = {
+      // same as tf1 but different timezone
+      start: new Date(
+        DateTime.fromISO('2021-01-01T00:01:00.000Z').setZone('Europe/Istanbul').toISO(),
+      ),
+      end: new Date(
+        DateTime.fromISO('2021-01-05T23:59:00.000Z').setZone('Europe/Istanbul').toISO(),
+      ),
+    }
+    const tf4 = tf2
+    const expected34 = expected12
+
+    const tf5 = { start: new Date('2021-01-01T00:01:00.000Z'), end: null }
+    const tf6 = {
+      start: new Date('2021-01-03T00:01:00.000Z'),
+      end: new Date('2021-01-10T23:59:00.000Z'),
+    }
+    const expected56 = {
+      start: new Date('2021-01-03T00:01:00.000Z'),
+      end: new Date('2021-01-10T23:59:00.000Z'),
+    }
+
+    const tf7 = {
+      start: new Date('2021-01-01T00:01:00.000Z'),
+      end: new Date('2021-01-05T23:59:00.000Z'),
+    }
+    const tf8 = { start: new Date('2021-01-03T00:01:00.000Z'), end: null }
+    const expected78 = {
+      start: new Date('2021-01-03T00:01:00.000Z'),
+      end: new Date('2021-01-05T23:59:00.000Z'),
+    }
+
+    const tf9 = { start: new Date('2021-01-01T00:01:00.000Z'), end: null }
+    const tf10 = { start: new Date('2021-01-03T00:01:00.000Z'), end: null }
+    const expected910 = { start: new Date('2021-01-03T00:01:00.000Z'), end: null }
+
+    test.each`
+      a      | b       | expected
+      ${tf1} | ${tf2}  | ${expected12}
+      ${tf3} | ${tf4}  | ${expected34}
+      ${tf5} | ${tf6}  | ${expected56}
+      ${tf7} | ${tf8}  | ${expected78}
+      ${tf9} | ${tf10} | ${expected910}
+    `('$a >> $b => $expected', ({ a, b, expected }) => {
+      expect(getOverlappingTimeframe(a, b, { asDate: true })).toEqual(expected)
+    })
+  })
 })

@@ -72,7 +72,10 @@ export function checkIsSameTimeframe(
  * @param arg1 First timeframe.
  * @param arg2 Second timeframe.
  */
-export function checkTimeframesOverlap(arg1: Timeframe, arg2: Timeframe): boolean {
+export function checkTimeframesOverlap(
+  arg1: SerializableTimeframe,
+  arg2: SerializableTimeframe,
+): boolean {
   let tf
   switch (true) {
     case !arg1.end && !arg2.end:
@@ -108,29 +111,63 @@ export function checkTimeframesOverlap(arg1: Timeframe, arg2: Timeframe): boolea
 
 /**
  * Takes two timeframes and determines the timeframe where they overlap.
- * @return {Timeframe | null} Overlapping timeframe, or null if the timeframes don't overlap.
+ * @param {SerializableTimeframe} arg1
+ * @param {SerializableTimeframe} arg2
+ * @return {Timeframe<string> | Timeframe<Date> | null} Overlapping timeframe, or null if the timeframes don't overlap.
  */
-export function getOverlappingTimeframe(arg1: Timeframe, arg2: Timeframe): Timeframe | null {
-  // Timeframe don't overlap
-  if (!checkTimeframesOverlap(arg1, arg2)) return null
+export function getOverlappingTimeframe(
+  arg1: SerializableTimeframe,
+  arg2: SerializableTimeframe,
+): Timeframe<string> | null
+export function getOverlappingTimeframe(
+  arg1: SerializableTimeframe,
+  arg2: SerializableTimeframe,
+  options: {
+    asDate: true
+  },
+): Timeframe<Date> | null
+export function getOverlappingTimeframe(
+  arg1: SerializableTimeframe,
+  arg2: SerializableTimeframe,
+  options?: {
+    asDate?: boolean
+  },
+): Timeframe<string> | Timeframe<Date> | null {
+  let overlappingTimeframe: Timeframe<string> | Timeframe<Date> | null = null
+  let overlappingDateTime: {
+    start: DateTime
+    end: DateTime | null
+  } | null
 
-  // Check if one of the time frames is open ended
-  if (!arg1.end || !arg2.end) {
+  if (!checkTimeframesOverlap(arg1, arg2)) {
+    // Timeframe don't overlap
+    overlappingDateTime = null
+  } else if (!arg1.end || !arg2.end) {
     // At least one timeframe is open ended
     const start1 = toDateTime(arg1.start).toUTC()
     const start2 = toDateTime(arg2.start).toUTC()
-    let end: string | null
+    let end: DateTime | null
 
     // Check which timeframe ends first
     if (arg1.end !== null) {
-      end = toDateTime(arg1.end).toUTC().toISO()
+      end = toDateTime(arg1.end).toUTC()
     } else if (arg2.end !== null) {
-      end = toDateTime(arg2.end).toUTC().toISO()
+      end = toDateTime(arg2.end).toUTC()
     } else {
       end = null
     }
-    if (start1 > start2) return { start: start1.toISO(), end }
-    else return { start: start2.toISO(), end }
+
+    if (start1 > start2) {
+      overlappingDateTime = {
+        start: start1,
+        end,
+      }
+    } else {
+      overlappingDateTime = {
+        start: start2,
+        end,
+      }
+    }
   } else {
     // Not Open Ended
     const interval1 = Interval.fromDateTimes(
@@ -143,11 +180,28 @@ export function getOverlappingTimeframe(arg1: Timeframe, arg2: Timeframe): Timef
     )
     const overlapInterval = interval1.intersection(interval2) as Interval
 
-    return {
-      start: overlapInterval.start.toISO(),
-      end: overlapInterval.end.toISO(),
+    overlappingDateTime = {
+      start: overlapInterval.start,
+      end: overlapInterval.end,
     }
   }
+  if (overlappingDateTime === null) {
+    // No overlap
+    overlappingTimeframe = null
+  } else {
+    // Format overlap format
+    options?.asDate === true
+      ? (overlappingTimeframe = {
+          start: overlappingDateTime.start.toJSDate(),
+          end: overlappingDateTime.end !== null ? overlappingDateTime.end?.toJSDate() : null,
+        })
+      : (overlappingTimeframe = {
+          start: overlappingDateTime.start.toISO(),
+          end: overlappingDateTime.end !== null ? overlappingDateTime.end?.toISO() : null,
+        })
+  }
+
+  return overlappingTimeframe
 }
 /**
  * Takes string, number or JsDate and converts to luxon DateTime in UTC
