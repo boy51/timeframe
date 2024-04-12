@@ -1,4 +1,4 @@
-# timeframe.js (1.1.2)
+# timeframe.js (1.1.3)
 
 Simple, well-tested functions for dealing with timeframes
 
