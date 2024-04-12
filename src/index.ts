@@ -178,12 +178,14 @@ export function getOverlappingTimeframe(
       toDateTime(arg2.start).toUTC(),
       toDateTime(arg2.end).toUTC(),
     )
-    const overlapInterval = interval1.intersection(interval2) as Interval
+    const overlapInterval = interval1.intersection(interval2)
 
-    overlappingDateTime = {
-      start: overlapInterval.start,
-      end: overlapInterval.end,
-    }
+    overlappingDateTime = overlapInterval
+      ? {
+          start: overlapInterval.start,
+          end: overlapInterval.end,
+        }
+      : null
   }
   if (overlappingDateTime === null) {
     // No overlap
